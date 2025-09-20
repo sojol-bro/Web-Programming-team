@@ -1,6 +1,6 @@
 # Web-Programming-team
 
-1. create venv and activate
+1. create venv and activate \n
     -> python3 -m venv venv
     -> source venv/bin/activate  #for mac
 2. runproject
