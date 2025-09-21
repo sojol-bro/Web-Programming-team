@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <!-- Header -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="text-xl font-bold text-gray-900">SkillNet</div>
+
+      <nav class="hidden md:flex space-x-6">
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Home</a>
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Jobs</a>
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Courses</a>
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Quizzes</a>
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">About</a>
+      </nav>
+
+      <div class="flex space-x-3">
+        <button class="px-4 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition duration-200 text-sm">Sign In</button>
+        <button class="px-4 py-1 rounded-full bg-blue-700 text-white hover:bg-blue-800 transition duration-200 text-sm">Sign up</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="bg-blue-100 py-10 md:py-16 px-4">
+    <div class="container mx-auto max-w-6xl">
+      <h1 class="text-3xl md:text-4xl font-bold text-center mb-8">
+        Find Your Perfect <span class="text-blue-600">AI-Powered</span> Job
+      </h1>
+
+      <div class="flex flex-col md:flex-row justify-center gap-3 mb-8">
+        <div class="relative w-full md:w-96">
+          <input type="text" placeholder="Job title, keywords, or company" class="w-full pl-10 pr-4 py-3 rounded-full border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <div class="absolute left-3 top-3.5 text-blue-500">
+            <i class="fas fa-search"></i>
+          </div>
+        </div>
+        <div class="relative w-full md:w-64">
+          <input type="text" placeholder="Location" class="w-full pl-10 pr-4 py-3 rounded-full border border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <div class="absolute left-3 top-3.5 text-blue-500">
+            <i class="fas fa-map-marker-alt"></i>
+          </div>
+        </div>
+        <button class="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-200">Search Jobs</button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div>
+          <p class="text-2xl font-bold">10K+</p>
+          <p class="text-gray-700 text-sm">Active jobs</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold">3K+</p>
+          <p class="text-gray-700 text-sm">Companies</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold">100+</p>
+          <p class="text-gray-700 text-sm">Skill Quizzes</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold">40+</p>
+          <p class="text-gray-700 text-sm">Courses</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Jobs -->
+  <section class="py-16 bg-blue-50">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold mb-2">Featured Jobs</h2>
+        <p class="text-gray-700">Discover hand-picked opportunities from top companies</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <!-- Job Card 1 -->
+        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 transform transition-transform hover:shadow-lg">
+          <div class="flex items-center mb-4">
+            <img src="https://via.placeholder.com/50" alt="Laptop" class="w-10 h-10 mr-4 rounded-md" />
+            <div>
+              <h3 class="font-bold text-lg">Senior AI Engineer</h3>
+              <p class="text-gray-600 text-sm">TechCorps</p>
+            </div>
+          </div>
+
+          <div class="space-y-2 mb-4">
+            <div class="flex items-center text-sm">
+              <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>
+              <span>San Francisco, CA</span>
+            </div>
+            <div class="flex items-center text-sm">
+              <i class="fas fa-dollar-sign text-gray-500 mr-1"></i>
+              <span>$30k - $40k</span>
+            </div>
+            <div class="flex items-center text-sm">
+              <i class="fas fa-clock text-gray-500 mr-1"></i>
+              <span>2 days ago</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Python</span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">TensorFlow</span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Machine Learning</span>
+          </div>
+
+          <div class="text-right text-gray-600 text-sm">
+            Full-time
+          </div>
+        </div>
+
+        <!-- Job Card 2 -->
+        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 transform transition-transform hover:shadow-lg">
+          <div class="flex items-center mb-4">
+            <img src="https://via.placeholder.com/50" alt="Laptop" class="w-10 h-10 mr-4 rounded-md" />
+            <div>
+              <h3 class="font-bold text-lg">Frontend Developer</h3>
+              <p class="text-gray-600 text-sm">TechOps</p>
+            </div>
+          </div>
+
+          <div class="space-y-2 mb-4">
+            <div class="flex items-center text-sm">
+              <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>
+              <span>Monach, London</span>
+            </div>
+            <div class="flex items-center text-sm">
+              <i class="fas fa-dollar-sign text-gray-500 mr-1"></i>
+              <span>$35k - $50k</span>
+            </div>
+            <div class="flex items-center text-sm">
+              <i class="fas fa-clock text-gray-500 mr-1"></i>
+              <span>2 days ago</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">React</span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Vue.js</span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">TypeScript</span>
+          </div>
+
+          <div class="text-right text-gray-600 text-sm">
+            Full-time
+          </div>
+        </div>
+
+        <!-- Job Card 3 -->
+        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 transform transition-transform hover:shadow-lg">
+          <div class="flex items-center mb-4">
+            <img src="https://via.placeholder.com/50" alt="Laptop" class="w-10 h-10 mr-4 rounded-md" />
+            <div>
+              <h3 class="font-bold text-lg">Devops</h3>
+              <p class="text-gray-600 text-sm">Gag Media</p>
+            </div>
+          </div>
+
+          <div class="space-y-2 mb-4">
+            <div class="flex items-center text-sm">
+              <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>
+              <span>Dhaka, Bangladesh</span>
+            </div>
+            <div class="flex items-center text-sm">
+              <i class="fas fa-dollar-sign text-gray-500 mr-1"></i>
+              <span>$19k - $40k</span>
+            </div>
+            <div class="flex items-center text-sm">
+              <i class="fas fa-clock text-gray-500 mr-1"></i>
+              <span>5 days ago</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Jira</span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Clickup</span>
+            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">CDN</span>
+          </div>
+
+          <div class="text-right text-gray-600 text-sm">
+            Full-time
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button class="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-200 text-sm">View all Jobs</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Popular Courses -->
+  <section class="py-16 bg-blue-100">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold mb-2">Popular Courses</h2>
+        <p class="text-gray-700">Enhance your skills with industry-leading courses designed by experts</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <!-- Course 1 -->
+        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 transform transition-transform hover:shadow-lg">
+          <div class="flex justify-between items-start mb-4">
+            <img src="https://via.placeholder.com/80x80" alt="Django Logo" class="w-16 h-16 rounded-md" />
+            <div class="text-right">
+              <p class="text-xs text-gray-600">Beginner</p>
+            </div>
+          </div>
+
+          <h3 class="font-bold text-lg mb-1">Django</h3>
+          <p class="text-gray-600 text-sm mb-3">Backend development</p>
+
+          <p class="text-gray-700 text-sm mb-4">Build modern web applications with Django and power your backend knowledge.</p>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Python</span>
+            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Frameworks</span>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div class="flex items-center text-sm">
+              <i class="fas fa-clock text-gray-600 mr-1"></i>
+              <span>19 Class</span>
+            </div>
+            <button class="px-3 py-1 bg-blue-700 text-white rounded text-xs">Price 1399 Tk</button>
+          </div>
+        </div>
+
+        <!-- Course 2 -->
+        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 transform transition-transform hover:shadow-lg">
+          <div class="flex justify-between items-start mb-4">
+            <img src="https://via.placeholder.com/80x80" alt="SEO Logo" class="w-16 h-16 rounded-md" />
+            <div class="text-right">
+              <p class="text-xs text-gray-600">Intermediate</p>
+            </div>
+          </div>
+
+          <h3 class="font-bold text-lg mb-1">Seo</h3>
+          <p class="text-gray-600 text-sm mb-3">Search engine optimization</p>
+
+          <p class="text-gray-700 text-sm mb-4">Easily find the products, services, or information you need with our fast and intuitive search bar.</p>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Technical SEO</span>
+            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Link Building</span>
+            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">Content Creation</span>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div class="flex items-center text-sm">
+              <i class="fas fa-clock text-gray-600 mr-1"></i>
+              <span>24 Class</span>
+            </div>
+            <button class="px-3 py-1 bg-blue-700 text-white rounded text-xs">Price 999 Tk</button>
+          </div>
+        </div>
+
+        <!-- Course 3 -->
+        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 transform transition-transform hover:shadow-lg">
+          <div class="flex justify-between items-start mb-4">
+            <img src="https://via.placeholder.com/80x80" alt="ASP.NET Logo" class="w-16 h-16 rounded-md" />
+            <div class="text-right">
+              <p class="text-xs text-gray-600">Intermediate</p>
+            </div>
+          </div>
+
+          <h3 class="font-bold text-lg mb-1">ASP.net</h3>
+          <p class="text-gray-600 text-sm mb-3">web development framework</p>
+
+          <p class="text-gray-700 text-sm mb-4">Learn .NET platform and supported languages like C# and VB.NET.</p>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">C#</span>
+            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">VB.NET</span>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div class="flex items-center text-sm">
+              <i class="fas fa-clock text-gray-600 mr-1"></i>
+              <span>33 Class</span>
+            </div>
+            <button class="px-3 py-1 bg-blue-700 text-white rounded text-xs">Price 899 Tk</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button class="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-200 text-sm">View all Courses</button>
+  </section>
+
+  <!-- How It Works -->
+  <section class="py-16 bg-blue-300">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <h2 class="text-3xl font-bold text-center mb-12">How It Works</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+        <div>
+          <h3 class="text-xl font-bold mb-4">Take Skill Quizzes</h3>
+          <p class="text-gray-800">Assess your skills with our comprehensive AI-powered quizzes to get personalized job recommendations</p>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold mb-4">Learn New Skills</h3>
+          <p class="text-gray-800">Get course recommendations based on your quiz results and industry demands</p>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold mb-4">Get Hired</h3>
+          <p class="text-gray-800">Earn certificates and get matched with jobs that perfectly fit your skill set</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+{% endblock %}
