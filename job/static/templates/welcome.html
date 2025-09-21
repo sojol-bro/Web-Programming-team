@@ -1,25 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <!-- Header -->
-  <header class="bg-white shadow-sm sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="text-xl font-bold text-gray-900">SkillNet</div>
-
-      <nav class="hidden md:flex space-x-6">
-        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Home</a>
-        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Jobs</a>
-        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Courses</a>
-        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Quizzes</a>
-        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">About</a>
-      </nav>
-
-      <div class="flex space-x-3">
-        <button class="px-4 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition duration-200 text-sm">Sign In</button>
-        <button class="px-4 py-1 rounded-full bg-blue-700 text-white hover:bg-blue-800 transition duration-200 text-sm">Sign up</button>
-      </div>
-    </div>
-  </header>
+  
+{% include 'nav/nav.html' %}
 
   <!-- Hero Section -->
   <section class="bg-blue-100 py-10 md:py-16 px-4">

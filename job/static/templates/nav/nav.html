@@ -1,0 +1,27 @@
+<!-- Header -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="text-xl font-bold text-gray-900">SkillNet</a>
+
+      <nav class="hidden md:flex space-x-6">
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Home</a>
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Jobs</a>
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Courses</a>
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">Quizzes</a>
+        <a href="#" class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">About</a>
+      </nav>
+
+      <div class="flex space-x-3">
+      {% if user.is_authenticated %}
+        
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="px-4 py-1 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200 text-sm">Logout</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}" class="px-4 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition duration-200 text-sm">Sign In</a>
+        <a href="{% url 'signup' %}" class="px-4 py-1 rounded-full bg-blue-700 text-white hover:bg-blue-800 transition duration-200 text-sm">Sign up</a>  <!-- Updated this line -->
+      {% endif %}
+    </div>
+    </div>
+  </header>
