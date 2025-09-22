@@ -14,3 +14,6 @@
 
 3. run tailwindCss 
     -> python3 manage.py tailwind start
+
+4. library 
+    -> pip install Pillow
