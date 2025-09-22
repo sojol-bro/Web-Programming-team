@@ -1,3 +1,4 @@
+from django.http import FileResponse
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -5,7 +6,10 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from .models import Job, Course, Company, CourseCategory,Course, CourseCategory, Enrollment,LessonCompletion,Lesson
+from .models import Choice, Job, Course, Company, CourseCategory,Course, CourseCategory, Enrollment,LessonCompletion,Lesson, Question, Quiz, QuizAttempt, UserAnswer
+from .models import UserProfile, Experience, Education, Skill, Project, Language, Certificate
+
+
 
 def home(request):
 
@@ -259,7 +263,7 @@ def course_list(request):
     
     else:
         # Default to "All Courses" if not authenticated or invalid tab
-        return redirect('course_list?tab=all')
+        return redirect('app:course_list?tab=all')
     
     return render(request, 'courses/course_list.html', context)
 
@@ -290,7 +294,7 @@ def enroll_course(request, course_id):
     else:
         messages.info(request, f'You are already enrolled in {course.title}')
     
-    return redirect('course_detail', course_id=course_id)
+    return redirect('app:course_detail', course_id=course_id)
 
 @login_required
 def my_courses(request):
@@ -370,7 +374,7 @@ def enroll_course(request, course_id):
     else:
         messages.info(request, f'You are already enrolled in {course.title}')
     
-    return redirect('course_detail', course_id=course_id)
+    return redirect('app:course_detail', course_id=course_id)
 
 @login_required
 def mark_lesson_complete(request, enrollment_id, lesson_id):
@@ -390,7 +394,7 @@ def mark_lesson_complete(request, enrollment_id, lesson_id):
     else:
         messages.info(request, f'Lesson "{lesson.title}" was already completed')
     
-    return redirect('course_detail', course_id=enrollment.course.id)
+    return redirect('app:course_detail', course_id=enrollment.course.id)
 
 @login_required
 def continue_learning(request, course_id):
@@ -399,7 +403,225 @@ def continue_learning(request, course_id):
     
     next_lesson = enrollment.get_next_lesson()
     if next_lesson:
-        return redirect('lesson_detail', course_id=course_id, lesson_id=next_lesson.id)
+        return redirect('app:lesson_detail', course_id=course_id, lesson_id=next_lesson.id)
     else:
         messages.success(request, 'Congratulations! You have completed this course!')
-        return redirect('course_detail', course_id=course_id)
+        return redirect('app:course_detail', course_id=course_id)
+    
+
+def about_view(request):
+    return render(request, 'jobs/about.html')
+
+
+
+def quiz_list(request):
+    quizzes = Quiz.objects.filter(is_active=True).order_by('-created_date')
+    
+    context = {
+        'quizzes': quizzes,
+    }
+    return render(request, 'quizzes/quiz_list.html', context)
+
+def quiz_detail(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id, is_active=True)
+    questions = quiz.questions.all().prefetch_related('choices')
+    
+    # Check if user has already attempted this quiz
+    previous_attempt = None
+    if request.user.is_authenticated:
+        previous_attempt = QuizAttempt.objects.filter(
+            user=request.user, 
+            quiz=quiz
+        ).first()
+    
+    context = {
+        'quiz': quiz,
+        'questions': questions,
+        'previous_attempt': previous_attempt,
+    }
+    return render(request, 'quizzes/quiz_detail.html', context)
+
+@login_required
+def start_quiz(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id, is_active=True)
+    
+    # Check if user has already attempted this quiz
+    existing_attempt = QuizAttempt.objects.filter(
+        user=request.user, 
+        quiz=quiz
+    ).first()
+    
+    if existing_attempt:
+        messages.info(request, f'You have already attempted this quiz. Your score: {existing_attempt.score}%')
+        return redirect('app:quiz_result', attempt_id=existing_attempt.id)
+    
+    # Create new quiz attempt
+    attempt = QuizAttempt.objects.create(
+        user=request.user,
+        quiz=quiz
+    )
+    
+    return redirect('app:take_quiz', attempt_id=attempt.id)
+
+@login_required
+def take_quiz(request, attempt_id):
+    attempt = get_object_or_404(QuizAttempt, id=attempt_id, user=request.user)
+    
+    if attempt.completed_at:
+        messages.info(request, 'This quiz has already been completed.')
+        return redirect('app:quiz_result', attempt_id=attempt.id)
+    
+    # Get unanswered questions
+    answered_question_ids = attempt.user_answers.values_list('question_id', flat=True)
+    current_question = attempt.quiz.questions.exclude(id__in=answered_question_ids).first()
+    
+    if not current_question:
+        # All questions answered, calculate score
+        return calculate_quiz_score(attempt)
+    
+    if request.method == 'POST':
+        # Process the answer
+        question_id = request.POST.get('question_id')
+        question = get_object_or_404(Question, id=question_id, quiz=attempt.quiz)
+        
+        if question.question_type == 'multiple_choice':
+            choice_id = request.POST.get('choice_id')
+            if choice_id:
+                selected_choice = get_object_or_404(Choice, id=choice_id, question=question)
+                is_correct = selected_choice.is_correct
+                
+                UserAnswer.objects.create(
+                    attempt=attempt,
+                    question=question,
+                    selected_choice=selected_choice,
+                    is_correct=is_correct
+                )
+        elif question.question_type == 'true_false':
+            answer = request.POST.get('answer') == 'true'
+            # For true/false, we need to know the correct answer
+            # This is a simplified version - you'd need to store correct answers differently
+            pass
+        
+        # Get next question or finish quiz
+        next_question = attempt.quiz.questions.exclude(
+            id__in=attempt.user_answers.values_list('question_id', flat=True)
+        ).first()
+        
+        if next_question:
+            current_question = next_question
+        else:
+            return calculate_quiz_score(attempt)
+    
+    context = {
+        'attempt': attempt,
+        'current_question': current_question,
+    }
+    return render(request, 'quizzes/take_quiz.html', context)
+
+def calculate_quiz_score(attempt):
+    total_questions = attempt.quiz.questions.count()
+    correct_answers = attempt.user_answers.filter(is_correct=True).count()
+    
+    if total_questions > 0:
+        score = (correct_answers / total_questions) * 100
+    else:
+        score = 0
+    
+    attempt.score = score
+    attempt.passed = score >= attempt.quiz.passing_score
+    attempt.completed_at = timezone.now()
+    attempt.save()
+    
+    # Update quiz statistics
+    attempt.quiz.attempts_count += 1
+    attempt.quiz.save()
+    
+    return redirect('app:quiz_result', attempt_id=attempt.id)
+
+@login_required
+def quiz_result(request, attempt_id):
+    attempt = get_object_or_404(QuizAttempt, id=attempt_id, user=request.user)
+    
+    if not attempt.completed_at:
+        messages.error(request, 'Quiz not completed yet.')
+        return redirect('app:take_quiz', attempt_id=attempt.id)
+    
+    context = {
+        'attempt': attempt,
+        'correct_answers': attempt.user_answers.filter(is_correct=True).count(),
+        'total_questions': attempt.quiz.questions.count(),
+    }
+    return render(request, 'quizzes/quiz_result.html', context)
+
+
+
+@login_required
+def profile(request, username=None):
+    # If no username provided, show current user's profile
+    if username:
+        profile_user = get_object_or_404(User, username=username)
+    else:
+        profile_user = request.user
+    
+    # Get active tab
+    active_tab = request.GET.get('tab', 'overview')
+    
+    # Get profile data
+    profile, created = UserProfile.objects.get_or_create(user=profile_user)
+    experiences = Experience.objects.filter(user=profile_user).order_by('-start_date')
+    educations = Education.objects.filter(user=profile_user).order_by('-start_date')
+    skills = Skill.objects.filter(user=profile_user).order_by('-percentage')
+    projects = Project.objects.filter(user=profile_user).order_by('-start_date')
+    languages = Language.objects.filter(user=profile_user)
+    certificates = Certificate.objects.filter(user=profile_user).order_by('-issue_date')
+    
+    context = {
+        'profile_user': profile_user,
+        'profile': profile,
+        'experiences': experiences,
+        'educations': educations,
+        'skills': skills,
+        'projects': projects,
+        'languages': languages,
+        'certificates': certificates,
+        'active_tab': active_tab,
+        'is_own_profile': profile_user == request.user,
+    }
+    return render(request, 'profile/profile.html', context)
+
+@login_required
+def edit_profile(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        # Handle profile picture upload
+        if 'profile_picture' in request.FILES:
+            profile.profile_picture = request.FILES['profile_picture']
+        
+        # Update other fields
+        profile.bio = request.POST.get('bio', '')
+        profile.title = request.POST.get('title', '')
+        profile.location = request.POST.get('location', '')
+        profile.phone = request.POST.get('phone', '')
+        profile.website = request.POST.get('website', '')
+        profile.linkedin = request.POST.get('linkedin', '')
+        profile.github = request.POST.get('github', '')
+        profile.save()
+        
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('app:profile')
+    
+    context = {
+        'profile': profile,
+    }
+    return render(request, 'profile/edit_profile.html', context)
+
+@login_required
+def download_cv(request):
+    profile = get_object_or_404(UserProfile, user=request.user)
+    if profile.resume:
+        response = FileResponse(profile.resume, as_attachment=True)
+        return response
+    else:
+        messages.error(request, 'No resume uploaded yet.')
+        return redirect('app:profile')

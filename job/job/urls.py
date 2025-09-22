@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from app.views import home, login_view, logout_view, signup_view
+from app.views import home, login_view, logout_view, signup_view,about_view
+from django.conf.urls.static import static
+from django.conf import settings
 
 app_name = 'job'
 
@@ -26,5 +28,9 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('signup/', signup_view, name='signup'), 
     path('logout/', logout_view, name='logout'),
+    path('about/', about_view, name='about_view'),
     path('',include('app.urls', namespace='app'))
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

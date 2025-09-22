@@ -188,3 +188,203 @@ class LessonCompletion(models.Model):
     def __str__(self):
         status = "Completed" if self.completed else "In Progress"
         return f"{self.enrollment.user.username} - {self.lesson.title} ({status})"
+    
+
+
+class QuizCategory(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    
+    def __str__(self):
+        return self.name
+
+class Quiz(models.Model):
+    DIFFICULTY_LEVELS = [
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    category = models.ForeignKey(QuizCategory, on_delete=models.CASCADE)
+    instructor = models.CharField(max_length=100, default='Saharier')
+    instructor_photo = models.ImageField(upload_to='instructor_photos/', blank=True, null=True)
+    description = models.TextField(blank=True)
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_LEVELS, default='beginner')
+    duration_minutes = models.IntegerField(default=30)
+    total_questions = models.IntegerField(default=10)
+    passing_score = models.IntegerField(default=70)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=5.0)
+    rating_count = models.IntegerField(default=0)
+    attempts_count = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.title
+    
+    def get_difficulty_badge_class(self):
+        if self.difficulty == 'beginner':
+            return 'bg-green-500 text-white'
+        elif self.difficulty == 'intermediate':
+            return 'bg-yellow-500 text-white'
+        else:
+            return 'bg-red-500 text-white'
+    
+    def get_star_rating(self):
+        """Return filled and empty stars based on rating"""
+        filled_stars = int(self.rating)
+        empty_stars = 5 - filled_stars
+        return filled_stars, empty_stars
+
+class Question(models.Model):
+    QUESTION_TYPES = [
+        ('multiple_choice', 'Multiple Choice'),
+        ('true_false', 'True/False'),
+        ('short_answer', 'Short Answer'),
+    ]
+    
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default='multiple_choice')
+    order = models.IntegerField(default=0)
+    points = models.IntegerField(default=1)
+    
+    class Meta:
+        ordering = ['order']
+    
+    def __str__(self):
+        return f"{self.quiz.title} - Q{self.order}"
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
+    choice_text = models.CharField(max_length=500)
+    is_correct = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.choice_text
+
+class QuizAttempt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    passed = models.BooleanField(default=False)
+    
+    class Meta:
+        unique_together = ['user', 'quiz']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.quiz.title}"
+
+class UserAnswer(models.Model):
+    attempt = models.ForeignKey(QuizAttempt, on_delete=models.CASCADE, related_name='user_answers')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    selected_choice = models.ForeignKey(Choice, on_delete=models.CASCADE, null=True, blank=True)
+    answer_text = models.TextField(blank=True)
+    is_correct = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.attempt.user.username} - {self.question.question_text}"
+    
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+    bio = models.TextField(blank=True)
+    title = models.CharField(max_length=200, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    website = models.URLField(blank=True)
+    linkedin = models.URLField(blank=True)
+    github = models.URLField(blank=True)
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+class Experience(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='experiences')
+    company = models.CharField(max_length=200)
+    position = models.CharField(max_length=200)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    current = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
+    
+    def __str__(self):
+        return f"{self.position} at {self.company}"
+
+class Education(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='educations')
+    institution = models.CharField(max_length=200)
+    degree = models.CharField(max_length=200)
+    field_of_study = models.CharField(max_length=200, blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    current = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
+    
+    def __str__(self):
+        return f"{self.degree} at {self.institution}"
+
+class Skill(models.Model):
+    PROFICIENCY_LEVELS = [
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced'),
+        ('expert', 'Expert'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skills')
+    name = models.CharField(max_length=100)
+    proficiency = models.CharField(max_length=20, choices=PROFICIENCY_LEVELS, default='intermediate')
+    percentage = models.IntegerField(default=50)  # 0-100%
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_proficiency_display()})"
+
+class Project(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    technologies = models.CharField(max_length=500)
+    project_url = models.URLField(blank=True)
+    github_url = models.URLField(blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    
+    def __str__(self):
+        return self.title
+    
+    def get_technologies_list(self):
+        return [tech.strip() for tech in self.technologies.split(',')]
+
+class Language(models.Model):
+    PROFICIENCY_LEVELS = [
+        ('basic', 'Basic'),
+        ('conversational', 'Conversational'),
+        ('professional', 'Professional'),
+        ('native', 'Native'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='languages')
+    name = models.CharField(max_length=100)
+    proficiency = models.CharField(max_length=20, choices=PROFICIENCY_LEVELS, default='conversational')
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_proficiency_display()})"
+
+class Certificate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificates')
+    title = models.CharField(max_length=200)
+    issuing_organization = models.CharField(max_length=200)
+    issue_date = models.DateField()
+    expiration_date = models.DateField(null=True, blank=True)
+    credential_id = models.CharField(max_length=100, blank=True)
+    credential_url = models.URLField(blank=True)
+    
+    def __str__(self):
+        return self.title

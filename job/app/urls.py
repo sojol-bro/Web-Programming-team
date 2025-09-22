@@ -3,7 +3,8 @@
 from django.contrib import admin
 from django.urls import path
 from . import views
-
+from django.conf.urls.static import static
+from django.conf import settings
 app_name = 'app'
 
 urlpatterns = [
@@ -16,4 +17,18 @@ urlpatterns = [
     path('courses/<int:course_id>/enroll/', views.enroll_course, name='enroll_course'),
     path('enrollment/<int:enrollment_id>/lesson/<int:lesson_id>/complete/', views.mark_lesson_complete, name='mark_lesson_complete'),
     path('course/<int:course_id>/continue/', views.continue_learning, name='continue_learning'),
+    
+    path('quizzes/', views.quiz_list, name='quiz_list'),
+    path('quizzes/<int:quiz_id>/', views.quiz_detail, name='quiz_detail'),
+    path('quizzes/<int:quiz_id>/start/', views.start_quiz, name='start_quiz'),
+    path('quiz/attempt/<int:attempt_id>/', views.take_quiz, name='take_quiz'),
+    path('quiz/attempt/<int:attempt_id>/result/', views.quiz_result, name='quiz_result'),
+
+    path('profile/', views.profile, name='profile'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('profile/<str:username>/', views.profile, name='profile_view'),
+    path('profile/download-cv/', views.download_cv, name='download_cv'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
