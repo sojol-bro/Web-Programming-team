@@ -1,4 +1,405 @@
-from django.shortcuts import render
+from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from .models import Job, Course, Company, CourseCategory,Course, CourseCategory, Enrollment,LessonCompletion,Lesson
 
-def landing_page(request):
-    return render(request, 'welcome.html')
+def home(request):
+
+    featured_jobs = Job.objects.filter(is_active=True).order_by('-posted_date')[:3]
+    
+    popular_courses = Course.objects.filter(is_active=True).order_by('-created_date')[:3]
+    
+    context = {
+        'featured_jobs': featured_jobs,
+        'popular_courses': popular_courses,
+    }
+    return render(request, 'welcome.html', context)
+
+def job_list(request):
+    jobs = Job.objects.filter(is_active=True).order_by('-posted_date')
+    
+    # Get filter parameters
+    location_filter = request.GET.get('location', '')
+    job_type_filter = request.GET.get('job_type', '')
+    experience_filter = request.GET.get('experience', '')
+    search_query = request.GET.get('q', '')
+    
+    # Apply filters
+    if search_query:
+        jobs = jobs.filter(title__icontains=search_query)
+    
+    if location_filter:
+        if location_filter == 'remote':
+            jobs = jobs.filter(work_mode='remote')
+        else:
+            jobs = jobs.filter(location__icontains=location_filter)
+    
+    if job_type_filter:
+        jobs = jobs.filter(job_type=job_type_filter)
+    
+    if experience_filter:
+        jobs = jobs.filter(experience_level=experience_filter)
+    
+    # Get unique values for filter dropdowns
+    locations = Job.objects.filter(is_active=True).values_list('location', flat=True).distinct()
+    job_types = Job.JOB_TYPES
+    experience_levels = Job.EXPERIENCE_LEVELS
+    
+    context = {
+        'jobs': jobs,
+        'locations': locations,
+        'job_types': job_types,
+        'experience_levels': experience_levels,
+        'selected_location': location_filter,
+        'selected_job_type': job_type_filter,
+        'selected_experience': experience_filter,
+        'search_query': search_query,
+    }
+    return render(request, 'jobs/job_list.html', context)
+
+def job_detail(request, job_id):
+    job = get_object_or_404(Job, id=job_id, is_active=True)
+    context = {
+        'job': job,
+    }
+    return render(request, 'jobs/job_detail.html', context)
+
+
+
+def course_list(request):
+    courses = Course.objects.filter(is_active=True).order_by('-created_date')
+    categories = CourseCategory.objects.all()
+    
+    context = {
+        'courses': courses,
+        'categories': categories,
+    }
+    return render(request, 'courses/course_list.html', context)
+
+def course_detail(request, course_id):
+    course = get_object_or_404(Course, id=course_id, is_active=True)
+    context = {
+        'course': course,
+    }
+    return render(request, 'courses/course_detail.html', context)
+
+def search_jobs(request):
+    query = request.GET.get('q', '')
+    location = request.GET.get('location', '')
+    
+    jobs = Job.objects.filter(is_active=True)
+    
+    if query:
+        jobs = jobs.filter(title__icontains=query)
+    
+    if location:
+        jobs = jobs.filter(location__icontains=location)
+    
+    context = {
+        'jobs': jobs,
+        'query': query,
+        'location': location,
+    }
+    return render(request, 'jobs/job_search.html', context)
+
+# Authentication views (existing ones)
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'Invalid username or password.')
+    
+    return render(request, 'auth/login.html')
+
+def signup_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        if not username or not email or not password or not confirm_password:
+            messages.error(request, 'All fields are required.')
+            return render(request, 'signup.html')
+            
+        if password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'signup.html')
+            
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+            return render(request, 'signup.html')
+            
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already registered.')
+            return render(request, 'signup.html')
+        
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.save()
+            login(request, user)
+            messages.success(request, 'Account created successfully!')
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, f'Error creating account: {str(e)}')
+    
+    return render(request, 'auth/signup.html')
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect('home')
+
+
+
+def course_list(request):
+    # Determine active tab
+    tab = request.GET.get('tab', 'all')
+    
+    # For "All Courses" tab
+    if tab == 'all':
+        courses = Course.objects.filter(is_active=True).order_by('-created_date')
+        
+        # Get filter parameters
+        category_filter = request.GET.get('category', '')
+        difficulty_filter = request.GET.get('difficulty', '')
+        price_filter = request.GET.get('price', '')
+        search_query = request.GET.get('q', '')
+        
+        # Apply filters
+        if search_query:
+            courses = courses.filter(
+                Q(title__icontains=search_query) |
+                Q(instructor__icontains=search_query) |
+                Q(skills_covered__icontains=search_query)
+            )
+        
+        if category_filter:
+            courses = courses.filter(category__name=category_filter)
+        
+        if difficulty_filter:
+            courses = courses.filter(difficulty=difficulty_filter)
+        
+        if price_filter:
+            if price_filter == 'free':
+                courses = courses.filter(price=0)
+            elif price_filter == 'under_1000':
+                courses = courses.filter(price__lt=1000)
+            elif price_filter == 'over_1000':
+                courses = courses.filter(price__gte=1000)
+        
+        # Get unique values for filter dropdowns
+        categories = CourseCategory.objects.all()
+        difficulty_levels = Course.DIFFICULTY_LEVELS
+        
+        context = {
+            'courses': courses,
+            'categories': categories,
+            'difficulty_levels': difficulty_levels,
+            'selected_category': category_filter,
+            'selected_difficulty': difficulty_filter,
+            'selected_price': price_filter,
+            'search_query': search_query,
+            'active_tab': tab,
+            'show_filters': True,  # Show filters for "All Courses"
+        }
+    
+    # For "My Courses" tab
+    elif tab == 'my_courses' and request.user.is_authenticated:
+        enrollments = Enrollment.objects.filter(user=request.user).select_related('course')
+        
+        # Calculate progress for each enrollment
+        courses_with_progress = []
+        total_lessons_completed = 0
+        completed_courses_count = 0
+        
+        for enrollment in enrollments:
+            progress_percentage = enrollment.get_progress_percentage()
+            completed_lessons = enrollment.get_completed_lessons_count()
+            total_lessons = enrollment.course.lessons.count()
+            
+            total_lessons_completed += completed_lessons
+            
+            if progress_percentage == 100:
+                completed_courses_count += 1
+            
+            courses_with_progress.append({
+                'enrollment': enrollment,
+                'course': enrollment.course,
+                'progress_percentage': progress_percentage,
+                'completed_lessons': completed_lessons,
+                'total_lessons': total_lessons,
+                'next_lesson': enrollment.get_next_lesson(),
+            })
+        
+        # Get suggested courses (excluding already enrolled ones)
+        enrolled_course_ids = enrollments.values_list('course_id', flat=True)
+        suggested_courses = Course.objects.filter(is_active=True).exclude(
+            id__in=enrolled_course_ids
+        )[:4]
+        
+        context = {
+            'courses_with_progress': courses_with_progress,
+            'suggested_courses': suggested_courses,
+            'total_lessons_completed': total_lessons_completed,
+            'completed_courses_count': completed_courses_count,
+            'active_tab': tab,
+            'show_filters': False,  # Hide filters for "My Courses"
+        }
+    
+    else:
+        # Default to "All Courses" if not authenticated or invalid tab
+        return redirect('course_list?tab=all')
+    
+    return render(request, 'courses/course_list.html', context)
+
+def course_detail(request, course_id):
+    course = get_object_or_404(Course, id=course_id, is_active=True)
+    is_enrolled = False
+    if request.user.is_authenticated:
+        is_enrolled = Enrollment.objects.filter(user=request.user, course=course).exists()
+    
+    context = {
+        'course': course,
+        'is_enrolled': is_enrolled,
+    }
+    return render(request, 'courses/course_detail.html', context)
+
+@login_required
+def enroll_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id, is_active=True)
+    
+    # Check if already enrolled
+    enrollment, created = Enrollment.objects.get_or_create(
+        user=request.user,
+        course=course
+    )
+    
+    if created:
+        messages.success(request, f'Successfully enrolled in {course.title}!')
+    else:
+        messages.info(request, f'You are already enrolled in {course.title}')
+    
+    return redirect('course_detail', course_id=course_id)
+
+@login_required
+def my_courses(request):
+    enrollments = Enrollment.objects.filter(user=request.user).select_related('course')
+    
+    # Calculate progress for each enrollment
+    courses_with_progress = []
+    for enrollment in enrollments:
+        progress_percentage = enrollment.get_progress_percentage()
+        completed_lessons = enrollment.get_completed_lessons_count()
+        total_lessons = enrollment.course.lessons.count()
+        
+        courses_with_progress.append({
+            'enrollment': enrollment,
+            'course': enrollment.course,
+            'progress_percentage': progress_percentage,
+            'completed_lessons': completed_lessons,
+            'total_lessons': total_lessons,
+            'next_lesson': enrollment.get_next_lesson(),
+        })
+    
+    context = {
+        'courses_with_progress': courses_with_progress,
+        'active_tab': 'my_courses',
+    }
+    return render(request, 'courses/my_courses.html', context)
+
+@login_required
+def course_detail(request, course_id):
+    course = get_object_or_404(Course, id=course_id, is_active=True)
+    enrollment = Enrollment.objects.filter(user=request.user, course=course).first()
+    lessons = course.lessons.all()
+    
+    # Get completion status for each lesson
+    lessons_with_completion = []
+    for lesson in lessons:
+        completion = None
+        if enrollment:
+            completion = LessonCompletion.objects.filter(
+                enrollment=enrollment, 
+                lesson=lesson
+            ).first()
+        
+        lessons_with_completion.append({
+            'lesson': lesson,
+            'completion': completion,
+        })
+    
+    context = {
+        'course': course,
+        'enrollment': enrollment,
+        'lessons_with_completion': lessons_with_completion,
+        'progress_percentage': enrollment.get_progress_percentage() if enrollment else 0,
+    }
+    return render(request, 'courses/course_detail.html', context)
+
+@login_required
+def enroll_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id, is_active=True)
+    
+    # Check if already enrolled
+    enrollment, created = Enrollment.objects.get_or_create(
+        user=request.user,
+        course=course
+    )
+    
+    if created:
+        # Create lesson completion records for all lessons
+        lessons = course.lessons.all()
+        for lesson in lessons:
+            LessonCompletion.objects.create(
+                enrollment=enrollment,
+                lesson=lesson,
+                completed=False
+            )
+        messages.success(request, f'Successfully enrolled in {course.title}!')
+    else:
+        messages.info(request, f'You are already enrolled in {course.title}')
+    
+    return redirect('course_detail', course_id=course_id)
+
+@login_required
+def mark_lesson_complete(request, enrollment_id, lesson_id):
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id, user=request.user)
+    lesson = get_object_or_404(Lesson, id=lesson_id, course=enrollment.course)
+    
+    completion, created = LessonCompletion.objects.get_or_create(
+        enrollment=enrollment,
+        lesson=lesson
+    )
+    
+    if not completion.completed:
+        completion.completed = True
+        completion.completed_date = timezone.now()
+        completion.save()
+        messages.success(request, f'Lesson "{lesson.title}" marked as completed!')
+    else:
+        messages.info(request, f'Lesson "{lesson.title}" was already completed')
+    
+    return redirect('course_detail', course_id=enrollment.course.id)
+
+@login_required
+def continue_learning(request, course_id):
+    course = get_object_or_404(Course, id=course_id, is_active=True)
+    enrollment = get_object_or_404(Enrollment, user=request.user, course=course)
+    
+    next_lesson = enrollment.get_next_lesson()
+    if next_lesson:
+        return redirect('lesson_detail', course_id=course_id, lesson_id=next_lesson.id)
+    else:
+        messages.success(request, 'Congratulations! You have completed this course!')
+        return redirect('course_detail', course_id=course_id)
