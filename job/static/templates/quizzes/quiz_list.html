@@ -64,7 +64,7 @@
                         Start Quiz
                     </a>
                 {% else %}
-                    <a href="{% url 'app:login' %}?next={% url 'app:quiz_detail' quiz.id %}" 
+                    <a href="{% url 'login' %}?next={% url 'app:quiz_detail' quiz.id %}" 
                        class="w-full py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition font-medium text-center block">
                         Login to Start
                     </a>

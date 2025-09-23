@@ -158,7 +158,7 @@
                                 Enroll
                             </a>
                         {% else %}
-                            <a href="{% url 'app:login' %}?next={% url 'app:course_detail' course.id %}" 
+                            <a href="{% url 'login' %}?next={% url 'app:course_detail' course.id %}" 
                                class="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition">
                                 Enroll
                             </a>

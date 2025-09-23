@@ -108,7 +108,7 @@
                                     {% endif %}
                                 </a>
                             {% else %}
-                                <a href="{% url 'app:login' %}?next={% url 'app:course_detail' course.id %}" 
+                                <a href="{% url 'login' %}?next={% url 'app:course_detail' course.id %}" 
                                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-center">
                                     Login to Enroll - 
                                     {% if course.price == 0 %}
