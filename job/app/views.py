@@ -110,58 +110,11 @@ def search_jobs(request):
     }
     return render(request, 'jobs/job_search.html', context)
 
-# Authentication views (existing ones)
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            login(request, user)
-            return redirect('home')
-        else:
-            messages.error(request, 'Invalid username or password.')
-    
-    return render(request, 'auth/login.html')
-
-def signup_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-        
-        if not username or not email or not password or not confirm_password:
-            messages.error(request, 'All fields are required.')
-            return render(request, 'signup.html')
-            
-        if password != confirm_password:
-            messages.error(request, 'Passwords do not match.')
-            return render(request, 'signup.html')
-            
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
-            return render(request, 'signup.html')
-            
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already registered.')
-            return render(request, 'signup.html')
-        
-        try:
-            user = User.objects.create_user(username=username, email=email, password=password)
-            user.save()
-            login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('home')
-        except Exception as e:
-            messages.error(request, f'Error creating account: {str(e)}')
-    
-    return render(request, 'auth/signup.html')
 
 @login_required
 def logout_view(request):
     logout(request)
+    messages.success(request, 'You have been logged out successfully.')
     return redirect('home')
 
 
@@ -267,15 +220,49 @@ def course_list(request):
     
     return render(request, 'courses/course_list.html', context)
 
+@login_required
 def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id, is_active=True)
-    is_enrolled = False
-    if request.user.is_authenticated:
-        is_enrolled = Enrollment.objects.filter(user=request.user, course=course).exists()
+    enrollment = Enrollment.objects.filter(user=request.user, course=course).first()
+    lessons = course.lessons.all().order_by('order')
+    
+    # Get completion status for each lesson
+    lessons_with_completion = []
+    for lesson in lessons:
+        completion = None
+        if enrollment:
+            completion = LessonCompletion.objects.filter(
+                enrollment=enrollment, 
+                lesson=lesson
+            ).first()
+        
+        lessons_with_completion.append({
+            'lesson': lesson,
+            'completion': completion,
+        })
+    
+    # Calculate progress percentage
+    progress_percentage = enrollment.get_progress_percentage() if enrollment else 0
+    
+    # Get related courses (same category, excluding current course)
+    related_courses = Course.objects.filter(
+        category=course.category, 
+        is_active=True
+    ).exclude(id=course.id)[:3]
+    
+    # Count instructor's courses
+    instructor_courses_count = Course.objects.filter(
+        instructor=course.instructor, 
+        is_active=True
+    ).count()
     
     context = {
         'course': course,
-        'is_enrolled': is_enrolled,
+        'enrollment': enrollment,
+        'lessons_with_completion': lessons_with_completion,
+        'progress_percentage': progress_percentage,
+        'related_courses': related_courses,
+        'instructor_courses_count': instructor_courses_count,
     }
     return render(request, 'courses/course_detail.html', context)
 
@@ -451,9 +438,12 @@ def start_quiz(request, quiz_id):
         quiz=quiz
     ).first()
     
-    if existing_attempt:
+    if existing_attempt and existing_attempt.score > 40:
         messages.info(request, f'You have already attempted this quiz. Your score: {existing_attempt.score}%')
         return redirect('app:quiz_result', attempt_id=existing_attempt.id)
+
+    if existing_attempt :
+        existing_attempt.delete()
     
     # Create new quiz attempt
     attempt = QuizAttempt.objects.create(
@@ -546,12 +536,16 @@ def quiz_result(request, attempt_id):
         messages.error(request, 'Quiz not completed yet.')
         return redirect('app:take_quiz', attempt_id=attempt.id)
     
+    for ua in attempt.user_answers.all():
+        ua.correct_choices = ua.question.choices.filter(is_correct=True)
+
     context = {
         'attempt': attempt,
         'correct_answers': attempt.user_answers.filter(is_correct=True).count(),
         'total_questions': attempt.quiz.questions.count(),
     }
     return render(request, 'quizzes/quiz_result.html', context)
+
 
 
 

@@ -8,16 +8,7 @@
   <div class="bg-white mt-8 sm:mx-auto sm:w-full sm:max-w-md shadow sm:rounded-lg sm:px-10">
      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
       Create your account
-    </h2>
-    <div class=" py-8 px-4 ">
-      {% if messages %}
-        {% for message in messages %}
-          <div class="mb-4 {% if message.tags == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-green-100 border border-green-400 text-green-700{% endif %} px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ message }}</span>
-          </div>
-        {% endfor %}
-      {% endif %}
-      
+    </h2>      
       <form class="space-y-6" action="{% url 'signup' %}" method="POST">
         {% csrf_token %}
         <div>
@@ -35,6 +26,21 @@
           </label>
           <div class="mt-1">
             <input id="email" name="email" type="email" autocomplete="email" required class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          </div>
+        </div>
+
+        <!-- Add User Type Selection -->
+        <div>
+          <label for="user_type" class="block text-sm font-medium text-gray-700">
+            Account Type
+          </label>
+          <div class="mt-1">
+            <select id="user_type" name="user_type" required class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              <option value="">Select account type</option>
+              <option value="user">Regular User</option>
+              <option value="employee">Employee</option>
+              <option value="admin">Administrator</option>
+            </select>
           </div>
         </div>
 

@@ -55,7 +55,9 @@
         <!-- Job Card -->
         <div class="bg-gradient-to-br from-blue-300 to-blue-400 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
           <div class="flex items-center mb-4">
-            <img src="https://via.placeholder.com/40x40?text={{ job.company.name|slice:':1' }}" alt="{{ job.company.name }}" class="mr-4 rounded-lg" />
+            <img src="{{ job.company.logo.url }}" 
+              alt="{{ job.company.name }}" 
+              class="mr-4 rounded-lg h-10 w-10 object-cover overflow-hidden" />            
             <div>
               <h3 class="font-bold text-lg">{{ job.title }}</h3>
               <p class="text-sm text-gray-800">{{ job.company.name }}</p>

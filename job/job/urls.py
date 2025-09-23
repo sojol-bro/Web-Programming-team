@@ -16,7 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from app.views import home, login_view, logout_view, signup_view,about_view
+from app.views import home,  logout_view, about_view
+from accounts.views import employee_view, signup_view,login_view
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -25,6 +26,7 @@ app_name = 'job'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
+    path('employee/', employee_view, name='employee_view'),
     path('login/', login_view, name='login'),
     path('signup/', signup_view, name='signup'), 
     path('logout/', logout_view, name='logout'),

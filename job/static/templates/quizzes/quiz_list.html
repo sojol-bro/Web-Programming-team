@@ -31,7 +31,7 @@
                 </div>
                 
                 <div class="flex justify-between items-start mb-4">
-                    <h3 class="font-bold text-lg">{{ quiz.title }}</h3>
+                    <a href="{% url 'app:quiz_detail' quiz.id %}"><h3 class="font-bold text-lg hover:underline">{{ quiz.title }}</h3></a>
                     <span class="px-3 py-1 {{ quiz.get_difficulty_badge_class }} text-xs rounded-full">
                         {{ quiz.get_difficulty_display }}
                     </span>

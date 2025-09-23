@@ -66,9 +66,9 @@
       {% for job in jobs %}
       <!-- Job Card -->
       <div class="{% cycle 'bg-gray-200' 'bg-blue-100' 'bg-blue-200' %} p-6 rounded-xl shadow-md mb-6 flex flex-col md:flex-row gap-6 hover:shadow-lg transition-shadow">
-        <img src="https://via.placeholder.com/100x100?text={{ job.company.name|slice:':1' }}" 
-             alt="{{ job.company.name }}" 
-             class="rounded-lg w-20 h-20 object-cover" />
+        <img src="{{ job.company.logo.url }}" 
+              alt="{{ job.company.name }}" 
+              class="mr-4 rounded-lg h-10 w-10 object-cover overflow-hidden" /> 
 
         <div class="flex-grow">
           <div class="flex items-center justify-between mb-2">
